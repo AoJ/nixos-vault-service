@@ -51,6 +51,8 @@ let
         Restart = lib.mkDefault "on-failure";
         RestartSec = lib.mkDefault 5;
         Type = "notify";
+        # detsys-vaultAgent-***.service: Got notification message from PID 2641091, but reception only permitted for main PID which is currently not known
+        NotifyAccess = "all";
 
         ExecStartPre = precreateDirectories serviceName
           (lib.optionalAttrs (systemdServiceConfig ? User) { user = systemdServiceConfig.User; }
