@@ -131,8 +131,8 @@ let
 
         systemd.services.example = {
           script = ''
-            cat /tmp/detsys-vault/rand_bytes
-            cat /tmp/detsys-vault/rand_bytes-v2
+            cat /tmp/vault/rand_bytes
+            cat /tmp/vault/rand_bytes-v2
             sleep infinity
           '';
         };
@@ -143,8 +143,8 @@ let
         machine.wait_for_job("detsys-vaultAgent-example")
         print(machine.succeed("sleep 5; ls /run/keys"))
         print(machine.succeed("sleep 1; ls /tmp"))
-        print(machine.succeed("sleep 1; systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/detsys-vault/rand_bytes"))
-        print(machine.succeed("sleep 1; systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/detsys-vault/rand_bytes-v2"))
+        print(machine.succeed("sleep 1; systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/vault/rand_bytes"))
+        print(machine.succeed("sleep 1; systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/vault/rand_bytes-v2"))
         print(machine.succeed("sleep 1; journalctl -u detsys-vaultAgent-example"))
       '')
 
@@ -183,7 +183,7 @@ let
             while sleep 5
             do
               echo Reading a secret from a file that is constantly being overwritten:
-              cat /tmp/detsys-vault/slow
+              cat /tmp/vault/slow
             done
 
             sleep infinity
@@ -196,7 +196,7 @@ let
         machine.wait_for_job("detsys-vaultAgent-example")
         print(machine.succeed("sleep 5; ls /run/keys"))
         print(machine.succeed("sleep 1; ls /tmp"))
-        print(machine.succeed("sleep 1; systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/detsys-vault/slow"))
+        print(machine.succeed("sleep 1; systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/vault/slow"))
         print(machine.succeed("sleep 1; journalctl -u detsys-vaultAgent-example"))
       '')
 
@@ -205,7 +205,7 @@ let
         services.nginx = {
           enable = true;
           virtualHosts."localhost" = {
-            basicAuthFile = "/tmp/detsys-vault/prometheus-basic-auth";
+            basicAuthFile = "/tmp/vault/prometheus-basic-auth";
             root = pkgs.writeTextDir "index.html" "<h1>Hi</h1>";
           };
         };
@@ -242,7 +242,7 @@ let
         machine.start_job("nginx")
         machine.wait_for_job("detsys-vaultAgent-nginx")
         machine.succeed("sleep 5")
-        machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-nginx.service -p PrivateTmp=true cat /tmp/detsys-vault/prometheus-basic-auth")
+        machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-nginx.service -p PrivateTmp=true cat /tmp/vault/prometheus-basic-auth")
 
         machine.wait_for_unit("nginx")
         machine.wait_for_open_port(80)
@@ -254,7 +254,7 @@ let
       ({ pkgs, ... }: {
         systemd.services.example.script = ''
           echo Vault token with special perms is:
-          cat /tmp/detsys-vault/token
+          cat /tmp/vault/token
           sleep infinity
         '';
 
@@ -289,10 +289,10 @@ let
 
         # NOTE: it's necessary to cat the token to a more accessible location (for
         # this test) because `$(cat /token)` gets run by the calling shell and not
-        # the systemd-run spawned shell -- /tmp/detsys-vault/token only exists for
+        # the systemd-run spawned shell -- /tmp/vault/token only exists for
         # the systemd-run spawned shell, and there') no easy way to tell the shell
         # "don't evaluate this, let the spawned shell evaluate it"
-        machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/detsys-vault/token > /token")
+        machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/vault/token > /token")
 
         machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true -E VAULT_ADDR=http://127.0.0.1:8200/ -E VAULT_TOKEN=$(cat /token) -E PATH=$PATH -t -- vault kv get internalservices/kv/needs-token")
         machine.fail("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true -E VAULT_ADDR=http://127.0.0.1:8200/ -E VAULT_TOKEN=zzz -E PATH=$PATH -t -- vault kv get internalservices/kv/needs-token")
@@ -348,8 +348,8 @@ let
             Group = "nginx";
           };
           script = ''
-            cat /tmp/detsys-vault/rand_bytes
-            cat /tmp/detsys-vault/rand_bytes-v2
+            cat /tmp/vault/rand_bytes
+            cat /tmp/vault/rand_bytes-v2
             echo Have NINE random bytes, from a templated EnvironmentFile! $NINE_BYTES
             sleep infinity
           '';
@@ -359,13 +359,13 @@ let
         machine.wait_for_file("/role_id")
         machine.start_job("example")
         machine.wait_for_job("detsys-vaultAgent-example")
-        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true stat /tmp/detsys-vault/rand_bytes"))
-        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true stat /tmp/detsys-vault/rand_bytes-v2"))
+        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true stat /tmp/vault/rand_bytes"))
+        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true stat /tmp/vault/rand_bytes-v2"))
         machine.succeed("sleep 1")
-        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/detsys-vault/rand_bytes"))
-        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true stat /tmp/detsys-vault/rand_bytes"))
-        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/detsys-vault/rand_bytes-v2"))
-        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true stat /tmp/detsys-vault/rand_bytes-v2"))
+        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/vault/rand_bytes"))
+        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true stat /tmp/vault/rand_bytes"))
+        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/vault/rand_bytes-v2"))
+        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true stat /tmp/vault/rand_bytes-v2"))
         print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /run/keys/environment/example/EnvFile"))
         print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true stat /run/keys/environment/example/EnvFile"))
       '')
@@ -471,8 +471,8 @@ let
 
         systemd.services.example = {
           script = ''
-            cat /tmp/detsys-vault/rand_bytes
-            cat /tmp/detsys-vault/rand_bytes-v2
+            cat /tmp/vault/rand_bytes
+            cat /tmp/vault/rand_bytes-v2
             sleep infinity
           '';
         };
@@ -489,10 +489,10 @@ let
         machine.wait_for_file("/secret_id")
         machine.start_job("example")
         machine.wait_for_job("detsys-vaultAgent-example")
-        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/detsys-vault/rand_bytes"))
-        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true stat /tmp/detsys-vault/rand_bytes"))
-        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/detsys-vault/rand_bytes-v2"))
-        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true stat /tmp/detsys-vault/rand_bytes-v2"))
+        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/vault/rand_bytes"))
+        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true stat /tmp/vault/rand_bytes"))
+        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/vault/rand_bytes-v2"))
+        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true stat /tmp/vault/rand_bytes-v2"))
       '')
 
     (mkTest "failedSidecar"
@@ -613,22 +613,22 @@ let
 
         systemd.services.example = {
           script = ''
-            cat /tmp/detsys-vault/rand_bytes
-            cat /tmp/detsys-vault/rand_bytes-v2
+            cat /tmp/vault/rand_bytes
+            cat /tmp/vault/rand_bytes-v2
             sleep infinity
           '';
         };
 
         systemd.services.example2 = {
           script = ''
-            cat /tmp/detsys-vault/rand_bytes
+            cat /tmp/vault/rand_bytes
             sleep infinity
           '';
         };
 
         systemd.services.example3 = {
           script = ''
-            cat /tmp/detsys-vault/rand_bytes
+            cat /tmp/vault/rand_bytes
             sleep infinity
           '';
         };
@@ -637,16 +637,16 @@ let
         machine.wait_for_file("/secret_id")
         machine.start_job("example")
         machine.wait_for_job("detsys-vaultAgent-example")
-        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/detsys-vault/rand_bytes"))
-        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/detsys-vault/rand_bytes-v2"))
+        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/vault/rand_bytes"))
+        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example.service -p PrivateTmp=true cat /tmp/vault/rand_bytes-v2"))
         machine.start_job("example2")
         machine.wait_for_job("detsys-vaultAgent-example2")
-        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example2.service -p PrivateTmp=true cat /tmp/detsys-vault/rand_bytes"))
+        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example2.service -p PrivateTmp=true cat /tmp/vault/rand_bytes"))
         machine.start_job("example3")
         machine.wait_for_job("detsys-vaultAgent-example3")
-        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example3.service -p PrivateTmp=true cat /tmp/detsys-vault/rand_bytes"))
+        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example3.service -p PrivateTmp=true cat /tmp/vault/rand_bytes"))
         machine.succeed("sleep 2")
-        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example3.service -p PrivateTmp=true cat /tmp/detsys-vault/rand_bytes"))
+        print(machine.succeed("systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-example3.service -p PrivateTmp=true cat /tmp/vault/rand_bytes"))
       '')
 
     (mkTest "pathToSecret"
@@ -688,8 +688,8 @@ let
 
         systemd.services.example = {
           script = ''
-            cat /tmp/detsys-vault/rand_bytes
-            cat /tmp/detsys-vault/rand_bytes-v2
+            cat /tmp/vault/rand_bytes
+            cat /tmp/vault/rand_bytes-v2
             sleep infinity
           '';
         };
@@ -844,20 +844,20 @@ let
 
         systemd.services.example = {
           script = ''
-            cat /tmp/detsys-vault/rand_bytes
+            cat /tmp/vault/rand_bytes
           '';
         };
 
         systemd.services.example2 = {
           script = ''
-            cat /tmp/detsys-vault/rand_bytes-v2
+            cat /tmp/vault/rand_bytes-v2
             exit 1
           '';
         };
 
         systemd.services.example3 = {
           script = ''
-            cat /tmp/detsys-vault/rand_bytes-v3
+            cat /tmp/vault/rand_bytes-v3
             sleep infinity
           '';
         };
