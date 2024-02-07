@@ -242,7 +242,7 @@ nix-build ./default.nix -A checks.implementation
 To read the secret file (e.g. to verify the contents), you will need to join the namespace of the sidecar vaultAgent unit:
 
 ```bash
-systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-serviceName.service -p PrivateTmp=true cat /tmp/detsys-vault/some-secret-file
+systemd-run -p JoinsNamespaceOf=detsys-vaultAgent-serviceName.service -p PrivateTmp=true cat /tmp/vault/some-secret-file
 ```
 
 # License
