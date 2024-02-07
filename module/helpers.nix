@@ -1,7 +1,7 @@
 { lib }:
 rec {
   # This is ~safe because we require PrivateTmp to be true.
-  secretFilesRoot = "/tmp/detsys-vault/";
+  secretFilesRoot = "/tmp/vault/";
   environmentFilesRoot = "/run/keys/environment/";
 
   mkScopedMerge = attrs:
