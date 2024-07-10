@@ -2,7 +2,7 @@
   description = "NixOS integration for Vault-backed secrets on systemd services.";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.2405.631440.tar.gz";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.0.1.tar.gz";
   };
 
